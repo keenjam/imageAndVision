@@ -3,6 +3,7 @@
 #include <opencv/cv.h>        //you may need to
 #include <opencv/highgui.h>   //adjust import locations
 #include <opencv/cxcore.h>    //depending on your machine setup
+#include <math.h>
 
 using namespace cv;
 
@@ -58,7 +59,7 @@ int main( int argc, char** argv )
 
  Mat magnitudeImage(gray_image.rows, gray_image.cols, CV_32FC1);
  findGradient(sobelx, sobely, magnitudeImage);
- cv::normalize(sobely, sobely, 0, 255, NORM_MINMAX, CV_8UC1);
+ cv::normalize(magnitudeImage, magnitudeImage, 0, 255, NORM_MINMAX, CV_8UC1);
  imwrite( "magnitudeImage.jpg", magnitudeImage );
 
  Mat magnitudeDirectionImage(gray_image.rows, gray_image.cols, CV_32FC1);
@@ -140,7 +141,7 @@ void findGradientDirection(cv::Mat &sobelx, cv::Mat &sobely, cv::Mat &gradientDi
       sobelyValue = (float) sobely.at<float>(i, j);
 
 
-			gradientDirectionOutput.at<float>(i, j) = (float) atan2(sobelyValue, sobelxValue);
+			gradientDirectionOutput.at<float>(i, j) = (float) atan2(sobelyValue, sobelxValue) - (M_PI/2);
 		}
 	}
 
