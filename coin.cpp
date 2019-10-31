@@ -4,6 +4,7 @@
 #include <opencv/highgui.h>   //adjust import locations
 #include <opencv/cxcore.h>    //depending on your machine setup
 #include <math.h>
+#include "3darr.h"
 
 using namespace cv;
 
@@ -22,6 +23,14 @@ void findGradientDirection(
   cv::Mat &sobely,
   cv::Mat &gradientDirectionOutput);
 
+void hough(
+	cv::Mat &thresholdedImage,
+	cv::Mat &magnitudeDirectionImage,
+	int threshold,
+  float minimum,
+  float maximum,
+	float distance);
+
 int main( int argc, char** argv )
 {
 
@@ -31,12 +40,7 @@ int main( int argc, char** argv )
  Mat image;
  image = imread( imageName, 1 );
 
- if( argc != 2 || !image.data )
- {
 
-   printf( " No image data \n " );
-   return -1;
- }
 
  // CONVERT COLOUR, BLUR AND SAVE
  Mat gray_image;
@@ -67,9 +71,16 @@ int main( int argc, char** argv )
  cv::normalize(magnitudeDirectionImage, magnitudeDirectionImage, 0, 255, NORM_MINMAX, CV_8UC1);
  imwrite( "magnitudeDirectionImage.jpg", magnitudeDirectionImage );
 
+ int thresh = 100;
+ Mat thresholdedImage;
+ cv::threshold(magnitudeImage, thresholdedImage, thresh, 255, THRESH_BINARY);
+ imwrite( "thresholdedImage.jpg", thresholdedImage );
 
+
+ hough(thresholdedImage, magnitudeDirectionImage, 0, 10, 50, 0);
 
  return 0;
+
 }
 
 void applyKernel(cv::Mat &input, int kernel[3][3], cv::Mat &kernelOutput)
@@ -145,4 +156,49 @@ void findGradientDirection(cv::Mat &sobelx, cv::Mat &sobely, cv::Mat &gradientDi
 		}
 	}
 
+}
+
+void hough(cv::Mat &thresholdedImage, cv::Mat &magnitudeDirectionImage, int threshold, float minimum, float maximum, float distance) {
+  // radius, y, x
+	int ***array = malloc3dArray(maximum, thresholdedImage.rows, thresholdedImage.cols);
+
+	for( int x = 0; x < thresholdedImage.rows; x++) {
+		for( int y = 0; y < thresholdedImage.cols; y++ ) {
+			for(int r = minimum; r < maximum; r++) {
+				array[r][x][y] = 0;
+			}
+		}
+	}
+	for( int x = 0; x < thresholdedImage.rows; x++) {
+
+		for( int y = 0; y < thresholdedImage.cols; y++ ) {
+
+			if(thresholdedImage.at<uchar>( x, y ) == 255) {
+				for(int r = minimum; r < maximum; r++) {
+					int arrayx = (int)(x+(r* cos(magnitudeDirectionImage.at<uchar>( x, y ))));
+					int arrayy = (int)(y+(r* sin(magnitudeDirectionImage.at<uchar>( x, y ))));
+					if(arrayx >=0 && arrayx < thresholdedImage.rows && arrayy >=0 && arrayy < thresholdedImage.cols) {
+						array[r][arrayx][arrayy] += 1;
+					}
+				}
+			}
+
+		}
+	}
+	Mat houghOutput(thresholdedImage.rows, thresholdedImage.cols, CV_8UC1);
+	for( int x = 0; x < thresholdedImage.rows; x++) {
+		for( int y = 0; y < thresholdedImage.cols; y++ ) {
+			int sum = 0;
+			for (int r = minimum; r < maximum; r++) {
+				sum += array[r][x][y];
+				houghOutput.at<uchar>(x,y) += (uchar) sum;
+			}
+
+
+		}
+	}
+
+
+
+	 imwrite( "houghOuput.jpg", houghOutput );
 }
