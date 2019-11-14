@@ -3,6 +3,6 @@
 #include <stdio.h>
 #include <vector>
 
-//define all the vectors
-int dart4[] = {};
-std::vector<int> dart4 (arr, arr + sizeof(arr) / sizeof(arr[0]) );
+//define vectors
+std::vector <int> dart4 = {361,143,110,126};
+std::vector <int> dart5  = {5};
