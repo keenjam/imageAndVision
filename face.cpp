@@ -89,11 +89,20 @@ void displayTruths(Mat frame, std::vector<std::vector<int> > data) {
 }
 
 float calcIOU(std::vector<std::vector<int> > data, std::vector<Rect> faces, Mat frame) {
-	int IOU = 0;
+	float IOU = 0;
 	for (int truth = 0; truth < data.size(); truth++) {
 		for (int detected = 0; detected < faces.size(); detected++) {
 			int interRect[] = {std::max(data[truth][0],faces[detected].x), std::max(data[truth][1],faces[detected].y), std::min(data[truth][0]+data[truth][2],faces[detected].x + faces[detected].width), std::min(data[truth][1]+data[truth][3],faces[detected].y + faces[detected].height)};
-			rectangle(frame, Point(interRect[0], interRect[1]), Point(interRect[2], interRect[3]), Scalar( 255, 0, 0 ), 2);
+			
+			//draw intersecting area
+			//rectangle(frame, Point(interRect[0], interRect[1]), Point(interRect[2], interRect[3]), Scalar( 255, 0, 0 ), 2);
+
+			int interArea = std::max(0, interRect[2] - interRect[0]) * std::max(0, interRect[3] - interRect[1]);
+			int truthArea = data[truth][2] * data[truth][3];
+			int detectArea = faces[detected].width * faces[detected].height;
+
+			IOU = (float) interArea / (float) (truthArea + detectArea - interArea);
+			printf("IOU: %f\n",IOU);
 		}
 	}
 	return 0.0;
