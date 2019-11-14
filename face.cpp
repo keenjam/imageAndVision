@@ -22,6 +22,7 @@ using namespace cv;
 /** Function Headers */
 std::vector<Rect> detectAndDisplay( Mat frame );
 void displayTruths(Mat frame, std::vector<std::vector<int> > data);
+float calcIOU(std::vector<std::vector<int> > data, std::vector<Rect> faces, Mat frame);
 
 
 /** Global variables */
@@ -46,7 +47,7 @@ int main( int argc, const char** argv )
 
 	displayTruths(frame, faceData);
 
-
+	float IOU = calcIOU(faceData, faces, frame);
 
 	// 4. Save Result Image
 	imwrite( "detected.jpg", frame );
@@ -85,4 +86,16 @@ void displayTruths(Mat frame, std::vector<std::vector<int> > data) {
 	for (int face = 0; face < data.size(); face++) {
 		rectangle(frame, Point(data[face][0], data[face][1]), Point(data[face][0] + data[face][2], data[face][1] + data[face][3]), Scalar( 0, 0, 255 ), 2);
 	}
+}
+
+float calcIOU(std::vector<std::vector<int> > data, std::vector<Rect> faces, Mat frame) {
+	int IOU = 0;
+	for (int truth = 0; truth < data.size(); truth++) {
+		for (int detected = 0; detected < faces.size(); detected++) {
+			int interRect[] = {std::max(data[truth][0],faces[detected].x), std::max(data[truth][1],faces[detected].y), std::min(data[truth][0]+data[truth][2],faces[detected].x + faces[detected].width), std::min(data[truth][1]+data[truth][3],faces[detected].y + faces[detected].height)};
+			rectangle(frame, Point(interRect[0], interRect[1]), Point(interRect[2], interRect[3]), Scalar( 255, 0, 0 ), 2);
+		}
+	}
+	return 0.0;
+
 }
