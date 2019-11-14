@@ -11,14 +11,18 @@
 #include "opencv2/core/core.hpp"
 #include "opencv2/highgui/highgui.hpp"
 #include "opencv2/imgproc/imgproc.hpp"
+#include "data.h"
 #include <iostream>
 #include <stdio.h>
+#include <vector>
 
 using namespace std;
 using namespace cv;
 
 /** Function Headers */
-void detectAndDisplay( Mat frame );
+std::vector<Rect> detectAndDisplay( Mat frame );
+void displayTruths(Mat frame, std::vector<std::vector<int> > data);
+
 
 /** Global variables */
 String cascade_name = "frontalface.xml";
@@ -31,11 +35,18 @@ int main( int argc, const char** argv )
        // 1. Read Input Image
 	Mat frame = imread(argv[1], CV_LOAD_IMAGE_COLOR);
 
+
+	std::vector<std::vector<int> > faceData = getData(argv[1]);
+
 	// 2. Load the Strong Classifier in a structure called `Cascade'
 	if( !cascade.load( cascade_name ) ){ printf("--(!)Error loading\n"); return -1; };
 
 	// 3. Detect Faces and Display Result
-	detectAndDisplay( frame );
+	std::vector<Rect> faces = detectAndDisplay( frame );
+
+	displayTruths(frame, faceData);
+
+
 
 	// 4. Save Result Image
 	imwrite( "detected.jpg", frame );
@@ -44,7 +55,7 @@ int main( int argc, const char** argv )
 }
 
 /** @function detectAndDisplay */
-void detectAndDisplay( Mat frame )
+std::vector<Rect> detectAndDisplay( Mat frame )
 {
 	std::vector<Rect> faces;
 	Mat frame_gray;
@@ -65,4 +76,13 @@ void detectAndDisplay( Mat frame )
 		rectangle(frame, Point(faces[i].x, faces[i].y), Point(faces[i].x + faces[i].width, faces[i].y + faces[i].height), Scalar( 0, 255, 0 ), 2);
 	}
 
+	return faces;
+
+}
+
+void displayTruths(Mat frame, std::vector<std::vector<int> > data) {
+
+	for (int face = 0; face < data.size(); face++) {
+		rectangle(frame, Point(data[face][0], data[face][1]), Point(data[face][0] + data[face][2], data[face][1] + data[face][3]), Scalar( 0, 0, 255 ), 2);
+	}
 }
