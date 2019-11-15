@@ -22,7 +22,7 @@ using namespace cv;
 /** Function Headers */
 std::vector<Rect> detectAndDisplay( Mat frame );
 void displayTruths(Mat frame, std::vector<std::vector<int> > data);
-float calcIOU(std::vector<std::vector<int> > data, std::vector<Rect> faces, Mat frame);
+int calcTPR(std::vector<std::vector<int> > data, std::vector<Rect> faces, Mat frame);
 
 
 /** Global variables */
@@ -48,7 +48,9 @@ int main( int argc, const char** argv )
 
 	displayTruths(frame, faceData);
 
-	float IOU = calcIOU(faceData, faces, frame);
+	int count = calcTPR(faceData, faces, frame);
+
+	printf("True Positive Rate: %d/%lu\n", count, faceData.size());
 
 	// 4. Save Result Image
 	imwrite( "detected.jpg", frame );
@@ -89,7 +91,8 @@ void displayTruths(Mat frame, std::vector<std::vector<int> > data) {
 	}
 }
 
-float calcIOU(std::vector<std::vector<int> > data, std::vector<Rect> faces, Mat frame) {
+int calcTPR(std::vector<std::vector<int> > data, std::vector<Rect> faces, Mat frame) {
+	int count = 0;
 
 	for (int detected = 0; detected < faces.size(); detected++) {
 		float IOU = 0;
@@ -107,8 +110,11 @@ float calcIOU(std::vector<std::vector<int> > data, std::vector<Rect> faces, Mat 
 			IOU = std::max(IOU,(float) interArea / (float) (truthArea + detectArea - interArea));
 		}
 
-		printf("Face detected %d IOU: %f\n",detected, IOU);
+		//printf("Face detected %d IOU: %f\n",detected, IOU);
+		if (IOU >= IOUthresh) {
+			count += 1;
+		}
 	}
-	return 0.0;
+	return count;
 
 }
