@@ -28,6 +28,7 @@ float calcIOU(std::vector<std::vector<int> > data, std::vector<Rect> faces, Mat 
 /** Global variables */
 String cascade_name = "frontalface.xml";
 CascadeClassifier cascade;
+float IOUthresh = 0.45;
 
 
 /** @function main */
@@ -89,9 +90,11 @@ void displayTruths(Mat frame, std::vector<std::vector<int> > data) {
 }
 
 float calcIOU(std::vector<std::vector<int> > data, std::vector<Rect> faces, Mat frame) {
-	float IOU = 0;
-	for (int truth = 0; truth < data.size(); truth++) {
-		for (int detected = 0; detected < faces.size(); detected++) {
+
+	for (int detected = 0; detected < faces.size(); detected++) {
+		float IOU = 0;
+
+		for (int truth = 0; truth < data.size(); truth++) {
 			int interRect[] = {std::max(data[truth][0],faces[detected].x), std::max(data[truth][1],faces[detected].y), std::min(data[truth][0]+data[truth][2],faces[detected].x + faces[detected].width), std::min(data[truth][1]+data[truth][3],faces[detected].y + faces[detected].height)};
 			
 			//draw intersecting area
@@ -101,9 +104,10 @@ float calcIOU(std::vector<std::vector<int> > data, std::vector<Rect> faces, Mat 
 			int truthArea = data[truth][2] * data[truth][3];
 			int detectArea = faces[detected].width * faces[detected].height;
 
-			IOU = (float) interArea / (float) (truthArea + detectArea - interArea);
-			printf("IOU: %f\n",IOU);
+			IOU = std::max(IOU,(float) interArea / (float) (truthArea + detectArea - interArea));
 		}
+
+		printf("Face detected %d IOU: %f\n",detected, IOU);
 	}
 	return 0.0;
 
