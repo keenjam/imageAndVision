@@ -22,7 +22,7 @@ using namespace cv;
 /** Function Headers */
 std::vector<Rect> detectAndDisplay( Mat frame );
 void displayTruths(Mat frame, std::vector<std::vector<int> > data);
-int calcTPR(std::vector<std::vector<int> > data, std::vector<Rect> faces, Mat frame);
+int getTP(std::vector<std::vector<int> > data, std::vector<Rect> faces, Mat frame);
 
 
 /** Global variables */
@@ -48,9 +48,11 @@ int main( int argc, const char** argv )
 
 	displayTruths(frame, faceData);
 
-	int count = calcTPR(faceData, faces, frame);
+	int count = getTP(faceData, faces, frame);
 
-	printf("True Positive Rate: %d/%lu\n", count, faceData.size());
+	float TPR = (float) count/ (float) faceData.size();
+
+	printf("True Positive Rate: %f\n", TPR);
 
 	// 4. Save Result Image
 	imwrite( "detected.jpg", frame );
@@ -91,7 +93,7 @@ void displayTruths(Mat frame, std::vector<std::vector<int> > data) {
 	}
 }
 
-int calcTPR(std::vector<std::vector<int> > data, std::vector<Rect> faces, Mat frame) {
+int getTP(std::vector<std::vector<int> > data, std::vector<Rect> faces, Mat frame) {
 	int count = 0;
 
 	for (int detected = 0; detected < faces.size(); detected++) {
