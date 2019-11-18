@@ -54,6 +54,11 @@ int main( int argc, const char** argv )
 
 	printf("True Positive Rate: %f\n", TPR);
 
+	float precision = (float) count / (float) faces.size();
+
+	float FScore = 2 * (TPR * precision) / (precision + TPR);
+	printf("F1 Score: %f\n", FScore);
+
 	// 4. Save Result Image
 	imwrite( "detected.jpg", frame );
 
