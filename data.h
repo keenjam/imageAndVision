@@ -6,3 +6,4 @@
 #include <string>
 
 std::vector <std::vector<int> > getFaceData(std::string file);
+std::vector <std::vector<int> > getDartData(std::string file);

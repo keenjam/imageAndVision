@@ -29,16 +29,20 @@ int getTP(std::vector<std::vector<int> > data, std::vector<Rect> faces, Mat fram
 String cascade_name = "frontalface.xml";
 CascadeClassifier cascade;
 float IOUthresh = 0.45;
+std::vector<std::vector<int> > truthData;
 
 
 /** @function main */
 int main( int argc, const char** argv )
 {
-       // 1. Read Input Image
+
+	truthData = getFaceData(argv[1]);
+	if(argc > 1 && strcmp(argv[2],"dart") == 0) {
+		cascade_name = "dartcascade/cascade.xml";
+		truthData = getDartData(argv[1]);
+	}
+  // 1. Read Input Image
 	Mat frame = imread(argv[1], CV_LOAD_IMAGE_COLOR);
-
-
-	std::vector<std::vector<int> > faceData = getFaceData(argv[1]);
 
 	// 2. Load the Strong Classifier in a structure called `Cascade'
 	if( !cascade.load( cascade_name ) ){ printf("--(!)Error loading\n"); return -1; };
@@ -46,11 +50,11 @@ int main( int argc, const char** argv )
 	// 3. Detect Faces and Display Result
 	std::vector<Rect> faces = detectAndDisplay( frame );
 
-	displayTruths(frame, faceData);
+	displayTruths(frame, truthData);
 
-	int count = getTP(faceData, faces, frame);
+	int count = getTP(truthData, faces, frame);
 
-	float TPR = (float) count/ (float) faceData.size();
+	float TPR = (float) count/ (float) truthData.size();
 
 	printf("True Positive Rate: %f\n", TPR);
 
