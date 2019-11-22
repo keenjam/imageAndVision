@@ -38,7 +38,7 @@ int main( int argc, const char** argv )
 	Mat frame = imread(argv[1], CV_LOAD_IMAGE_COLOR);
 
 
-	std::vector<std::vector<int> > faceData = getData(argv[1]);
+	std::vector<std::vector<int> > faceData = getFaceData(argv[1]);
 
 	// 2. Load the Strong Classifier in a structure called `Cascade'
 	if( !cascade.load( cascade_name ) ){ printf("--(!)Error loading\n"); return -1; };

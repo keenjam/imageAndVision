@@ -18,6 +18,10 @@ std::vector <std::vector<int> > dart13 = {{429,150,84,105}};
 std::vector <std::vector<int> > dart14 = {{480,240,66,83},{738,218,74,75}};
 std::vector <std::vector<int> > dart15 = {{77,145,45,65},{549,144,39,66}};
 
+11define darts vectors
+
+194 217
+
 std::map <std::string, std::vector <std::vector<int> > > dartMap = {
 																													{"darts/dart4.jpg", dart4},
 																													{"darts/dart5.jpg", dart5},
@@ -30,6 +34,6 @@ std::map <std::string, std::vector <std::vector<int> > > dartMap = {
 																													{"darts/dart15.jpg", dart15}
 };
 
-std::vector <std::vector<int> > getData (std::string file) {
+std::vector <std::vector<int> > getFaceData (std::string file) {
 	return dartMap[file];
 }
