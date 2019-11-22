@@ -22,7 +22,7 @@ using namespace cv;
 /** Function Headers */
 std::vector<Rect> detectAndDisplay( Mat frame );
 void displayTruths(Mat frame, std::vector<std::vector<int> > data);
-int getTP(std::vector<std::vector<int> > data, std::vector<Rect> faces, Mat frame);
+int getTP(std::vector<std::vector<int> > data, std::vector<Rect> detected, Mat frame);
 
 
 /** Global variables */
@@ -47,18 +47,18 @@ int main( int argc, const char** argv )
 	// 2. Load the Strong Classifier in a structure called `Cascade'
 	if( !cascade.load( cascade_name ) ){ printf("--(!)Error loading\n"); return -1; };
 
-	// 3. Detect Faces and Display Result
-	std::vector<Rect> faces = detectAndDisplay( frame );
+	// 3. Detect objects and Display Result
+	std::vector<Rect> detected = detectAndDisplay( frame );
 
 	displayTruths(frame, truthData);
 
-	int count = getTP(truthData, faces, frame);
+	int count = getTP(truthData, detected, frame);
 
 	float TPR = (float) count/ (float) truthData.size();
 
 	printf("True Positive Rate: %f\n", TPR);
 
-	float precision = (float) count / (float) faces.size();
+	float precision = (float) count / (float) detected.size();
 
 	float FScore = 2 * (TPR * precision) / (precision + TPR);
 	printf("F1 Score: %f\n", FScore);
@@ -72,7 +72,7 @@ int main( int argc, const char** argv )
 /** @function detectAndDisplay */
 std::vector<Rect> detectAndDisplay( Mat frame )
 {
-	std::vector<Rect> faces;
+	std::vector<Rect> detected;
 	Mat frame_gray;
 
 	// 1. Prepare Image by turning it into Grayscale and normalising lighting
@@ -80,48 +80,47 @@ std::vector<Rect> detectAndDisplay( Mat frame )
 	equalizeHist( frame_gray, frame_gray );
 
 	// 2. Perform Viola-Jones Object Detection 
-	cascade.detectMultiScale( frame_gray, faces, 1.1, 1, 0|CV_HAAR_SCALE_IMAGE, Size(50, 50), Size(500,500) );
+	cascade.detectMultiScale( frame_gray, detected, 1.1, 1, 0|CV_HAAR_SCALE_IMAGE, Size(50, 50), Size(500,500) );
 
-       // 3. Print number of Faces found
-	std::cout << faces.size() << std::endl;
+       // 3. Print number of objects found
+	std::cout << detected.size() << std::endl;
 
-       // 4. Draw box around faces found
-	for( int i = 0; i < faces.size(); i++ )
+       // 4. Draw box around objects found
+	for( int i = 0; i < detected.size(); i++ )
 	{
-		rectangle(frame, Point(faces[i].x, faces[i].y), Point(faces[i].x + faces[i].width, faces[i].y + faces[i].height), Scalar( 0, 255, 0 ), 2);
+		rectangle(frame, Point(detected[i].x, detected[i].y), Point(detected[i].x + detected[i].width, detected[i].y + detected[i].height), Scalar( 0, 255, 0 ), 2);
 	}
 
-	return faces;
+	return detected;
 
 }
 
 void displayTruths(Mat frame, std::vector<std::vector<int> > data) {
 
-	for (int face = 0; face < data.size(); face++) {
-		rectangle(frame, Point(data[face][0], data[face][1]), Point(data[face][0] + data[face][2], data[face][1] + data[face][3]), Scalar( 0, 0, 255 ), 2);
+	for (int truth = 0; truth < data.size(); truth++) {
+		rectangle(frame, Point(data[truth][0], data[truth][1]), Point(data[truth][0] + data[truth][2], data[truth][1] + data[truth][3]), Scalar( 0, 0, 255 ), 2);
 	}
 }
 
-int getTP(std::vector<std::vector<int> > data, std::vector<Rect> faces, Mat frame) {
+int getTP(std::vector<std::vector<int> > data, std::vector<Rect> detected, Mat frame) {
 	int count = 0;
 
-	for (int detected = 0; detected < faces.size(); detected++) {
+	for (int item = 0; item < detected.size(); item++) {
 		float IOU = 0;
 
 		for (int truth = 0; truth < data.size(); truth++) {
-			int interRect[] = {std::max(data[truth][0],faces[detected].x), std::max(data[truth][1],faces[detected].y), std::min(data[truth][0]+data[truth][2],faces[detected].x + faces[detected].width), std::min(data[truth][1]+data[truth][3],faces[detected].y + faces[detected].height)};
+			int interRect[] = {std::max(data[truth][0],detected[item].x), std::max(data[truth][1],detected[item].y), std::min(data[truth][0]+data[truth][2],detected[item].x + detected[item].width), std::min(data[truth][1]+data[truth][3],detected[item].y + detected[item].height)};
 			
 			//draw intersecting area
 			//rectangle(frame, Point(interRect[0], interRect[1]), Point(interRect[2], interRect[3]), Scalar( 255, 0, 0 ), 2);
 
 			int interArea = std::max(0, interRect[2] - interRect[0]) * std::max(0, interRect[3] - interRect[1]);
 			int truthArea = data[truth][2] * data[truth][3];
-			int detectArea = faces[detected].width * faces[detected].height;
+			int detectArea = detected[item].width * detected[item].height;
 
 			IOU = std::max(IOU,(float) interArea / (float) (truthArea + detectArea - interArea));
 		}
 
-		//printf("Face detected %d IOU: %f\n",detected, IOU);
 		if (IOU >= IOUthresh) {
 			count += 1;
 		}
