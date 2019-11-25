@@ -33,9 +33,9 @@ std::vector<Rect> hough(
 std::vector<Rect> houghTransform(cv::Mat image)
 {
 
-  int thresh = 40;
+  int thresh = 150;
   int radmin = 35;
-  int radmax = 175;
+  int radmax = 150;
  // LOADING THE IMAGE
 
  //Mat image;
@@ -64,13 +64,15 @@ std::vector<Rect> houghTransform(cv::Mat image)
 
  Mat magnitudeImage(gray_image.rows, gray_image.cols, CV_32FC1);
  findGradient(sobelx, sobely, magnitudeImage);
- cv::normalize(magnitudeImage, magnitudeImage, 0, 255, NORM_MINMAX, CV_8UC1);
- imwrite( "gen/magnitudeImage.jpg", magnitudeImage );
+ Mat magnitudeImageNorm(gray_image.rows, gray_image.cols, CV_8UC1);
+ cv::normalize(magnitudeImage, magnitudeImageNorm, 0, 255, NORM_MINMAX, CV_8UC1);
+ imwrite( "gen/magnitudeImage.jpg", magnitudeImageNorm );
 
  Mat magnitudeDirectionImage(gray_image.rows, gray_image.cols, CV_32FC1);
  findGradientDirection(sobelx, sobely, magnitudeDirectionImage);
- cv::normalize(magnitudeDirectionImage, magnitudeDirectionImage, 0, 255, NORM_MINMAX, CV_8UC1);
- imwrite( "gen/magnitudeDirectionImage.jpg", magnitudeDirectionImage );
+Mat magnitudeDirectionImageNorm(gray_image.rows, gray_image.cols, CV_8UC1);
+ cv::normalize(magnitudeDirectionImage, magnitudeDirectionImageNorm, 0, 255, NORM_MINMAX, CV_8UC1);
+ imwrite( "gen/magnitudeDirectionImage.jpg", magnitudeDirectionImageNorm );
 
  
  Mat thresholdedImage;
@@ -171,16 +173,16 @@ std::vector<Rect> hough(cv::Mat &thresholdedImage, cv::Mat &magnitudeDirectionIm
 
 		for( int y = 0; y < thresholdedImage.cols; y++ ) {
 
-			if(thresholdedImage.at<uchar>( x, y ) == 255) {
+			if(thresholdedImage.at<float>( x, y ) == 255) {
 				for(int r = minimum; r < maximum; r++) {
-					int arrayx = (int)(x+(r* cos(magnitudeDirectionImage.at<uchar>( x, y ))));
-					int arrayy = (int)(y+(r* sin(magnitudeDirectionImage.at<uchar>( x, y ))));
+					int arrayx = (int)(x+(r* sin(magnitudeDirectionImage.at<float>( x, y ))));
+					int arrayy = (int)(y+(r* cos(magnitudeDirectionImage.at<float>( x, y ))));
 					if(arrayx >=0 && arrayx < thresholdedImage.rows && arrayy >=0 && arrayy < thresholdedImage.cols) {
 						array[r][arrayx][arrayy] += 1;
 					}
 
-          arrayx = (int)(x-(r* cos(magnitudeDirectionImage.at<uchar>( x, y ))));
-          arrayy = (int)(y-(r* sin(magnitudeDirectionImage.at<uchar>( x, y ))));
+          arrayx = (int)(x-(r* sin(magnitudeDirectionImage.at<float>( x, y ))));
+          arrayy = (int)(y-(r* cos(magnitudeDirectionImage.at<float>( x, y ))));
           if(arrayx >=0 && arrayx < thresholdedImage.rows && arrayy >=0 && arrayy < thresholdedImage.cols) {
             array[r][arrayx][arrayy] += 1;
           }
@@ -200,6 +202,7 @@ std::vector<Rect> hough(cv::Mat &thresholdedImage, cv::Mat &magnitudeDirectionIm
 			int sum = 0;
 			for (int r = minimum; r < maximum; r++) {
         if(array[r][x][y] > maxVal) {
+
           maxVal = array[r][x][y];
           maxRad = r;
           maxX = y;
@@ -212,6 +215,7 @@ std::vector<Rect> hough(cv::Mat &thresholdedImage, cv::Mat &magnitudeDirectionIm
 		}
 	}
 
+  printf("maxVal: %d\n", maxVal);
   printf("Circle at x: %d y: %d r: %d\n",maxX,maxY,maxRad);
 
    Mat houghNorm(houghOutput.rows, houghOutput.cols, CV_8UC1);
