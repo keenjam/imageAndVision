@@ -59,8 +59,12 @@ int main( int argc, const char** argv )
 		detected = detectAndDisplay( frame );
 	}
 	else{
-		Mat hough = houghTransform(frame);
-		printf("hough\n");
+		detected = houghTransform(frame);
+		for( int i = 0; i < detected.size(); i++ )
+		{
+			printf("Rect at x: %d y: %d width: %d height: %d\n",detected[i].x,detected[i].y, detected[i].width,detected[i].height);
+			rectangle(frame, Point(detected[i].x, detected[i].y), Point(detected[i].x + detected[i].width, detected[i].y + detected[i].height), Scalar( 0, 255, 0 ), 2);
+		}
 		//get hough detection
 		//display detected circles
 	}

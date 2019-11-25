@@ -24,16 +24,16 @@ void findGradientDirection(
   cv::Mat &sobely,
   cv::Mat &gradientDirectionOutput);
 
-Mat hough(
+std::vector<Rect> hough(
 	cv::Mat &thresholdedImage,
 	cv::Mat &magnitudeDirectionImage,
   float minimum,
   float maximum);
 
-Mat houghTransform(cv::Mat image)
+std::vector<Rect> houghTransform(cv::Mat image)
 {
 
-  int thresh = 50;
+  int thresh = 40;
   int radmin = 35;
   int radmax = 175;
  // LOADING THE IMAGE
@@ -156,7 +156,7 @@ void findGradientDirection(cv::Mat &sobelx, cv::Mat &sobely, cv::Mat &gradientDi
 
 }
 
-Mat hough(cv::Mat &thresholdedImage, cv::Mat &magnitudeDirectionImage, float minimum, float maximum) {
+std::vector<Rect> hough(cv::Mat &thresholdedImage, cv::Mat &magnitudeDirectionImage, float minimum, float maximum) {
   // radius, y, x
 	int ***array = malloc3dArray(maximum, thresholdedImage.rows, thresholdedImage.cols);
 
@@ -190,19 +190,34 @@ Mat hough(cv::Mat &thresholdedImage, cv::Mat &magnitudeDirectionImage, float min
 		}
 	}
 	Mat houghOutput(thresholdedImage.rows, thresholdedImage.cols, CV_32FC1);
+
+  int maxVal = 0;
+  int maxRad = 0;
+  int maxX = 0;
+  int maxY = 0;
 	for( int x = 0; x < thresholdedImage.rows; x++) {
 		for( int y = 0; y < thresholdedImage.cols; y++ ) {
 			int sum = 0;
 			for (int r = minimum; r < maximum; r++) {
+        if(array[r][x][y] > maxVal) {
+          maxVal = array[r][x][y];
+          maxRad = r;
+          maxX = y;
+          maxY = x;
+        }
 				sum += array[r][x][y];
-				houghOutput.at<float>(x,y) += (float) sum;
 			}
+			houghOutput.at<float>(x,y) = (float) sum;
 
 		}
 	}
 
+  printf("Circle at x: %d y: %d r: %d\n",maxX,maxY,maxRad);
+
    Mat houghNorm(houghOutput.rows, houghOutput.cols, CV_8UC1);
    cv::normalize(houghOutput, houghNorm, 0, 255, NORM_MINMAX, CV_8UC1);
 	 imwrite( "gen/houghOutput.jpg", houghNorm );
-   return(houghOutput);
+
+   std::vector<Rect> outputVect = {{maxX-maxRad,maxY-maxRad, maxRad * 2, maxRad*2}};
+   return(outputVect);
 }
