@@ -1,2 +1,3 @@
-detected.jpg
+*.jpg
 a.out
+Makefile
