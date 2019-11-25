@@ -6,4 +6,4 @@
 #include <math.h>
 
 
-void houghTransform(cv::Mat image);
+cv::Mat houghTransform(cv::Mat image);

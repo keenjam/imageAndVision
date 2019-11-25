@@ -24,17 +24,18 @@ void findGradientDirection(
   cv::Mat &sobely,
   cv::Mat &gradientDirectionOutput);
 
-void hough(
+Mat hough(
 	cv::Mat &thresholdedImage,
 	cv::Mat &magnitudeDirectionImage,
-	int threshold,
   float minimum,
-  float maximum,
-	float distance);
+  float maximum);
 
-void houghTransform(cv::Mat image)
+Mat houghTransform(cv::Mat image)
 {
 
+  int thresh = 50;
+  int radmin = 35;
+  int radmax = 175;
  // LOADING THE IMAGE
 
  //Mat image;
@@ -71,34 +72,12 @@ void houghTransform(cv::Mat image)
  cv::normalize(magnitudeDirectionImage, magnitudeDirectionImage, 0, 255, NORM_MINMAX, CV_8UC1);
  imwrite( "magnitudeDirectionImage.jpg", magnitudeDirectionImage );
 
- int thresh = 100;
+ 
  Mat thresholdedImage;
  cv::threshold(magnitudeImage, thresholdedImage, thresh, 255, THRESH_BINARY);
  imwrite( "thresholdedImage.jpg", thresholdedImage );
-void applyKernel(
-	cv::Mat &input,
-  int kernel[3][3],
-	cv::Mat &kernelOutput);
 
-void findGradient(
-  cv::Mat &sobelx,
-  cv::Mat &sobely,
-  cv::Mat &gradientOutput);
-
-void findGradientDirection(
-  cv::Mat &sobelx,
-  cv::Mat &sobely,
-  cv::Mat &gradientDirectionOutput);
-
-void hough(
-	cv::Mat &thresholdedImage,
-	cv::Mat &magnitudeDirectionImage,
-	int threshold,
-  float minimum,
-  float maximum,
-	float distance);
-
- hough(thresholdedImage, magnitudeDirectionImage, 0, 10, 50, 0);
+ return (hough(thresholdedImage, magnitudeDirectionImage, radmin, radmax));
 
 }
 
@@ -177,13 +156,13 @@ void findGradientDirection(cv::Mat &sobelx, cv::Mat &sobely, cv::Mat &gradientDi
 
 }
 
-void hough(cv::Mat &thresholdedImage, cv::Mat &magnitudeDirectionImage, int threshold, float minimum, float maximum, float distance) {
+Mat hough(cv::Mat &thresholdedImage, cv::Mat &magnitudeDirectionImage, float minimum, float maximum) {
   // radius, y, x
 	int ***array = malloc3dArray(maximum, thresholdedImage.rows, thresholdedImage.cols);
 
 	for( int x = 0; x < thresholdedImage.rows; x++) {
 		for( int y = 0; y < thresholdedImage.cols; y++ ) {
-			for(int r = minimum; r < maximum; r++) {
+			for(int r = 0; r < maximum; r++) {
 				array[r][x][y] = 0;
 			}
 		}
@@ -199,6 +178,12 @@ void hough(cv::Mat &thresholdedImage, cv::Mat &magnitudeDirectionImage, int thre
 					if(arrayx >=0 && arrayx < thresholdedImage.rows && arrayy >=0 && arrayy < thresholdedImage.cols) {
 						array[r][arrayx][arrayy] += 1;
 					}
+
+          arrayx = (int)(x-(r* cos(magnitudeDirectionImage.at<uchar>( x, y ))));
+          arrayy = (int)(y-(r* sin(magnitudeDirectionImage.at<uchar>( x, y ))));
+          if(arrayx >=0 && arrayx < thresholdedImage.rows && arrayy >=0 && arrayy < thresholdedImage.cols) {
+            array[r][arrayx][arrayy] += 1;
+          }
 				}
 			}
 
@@ -213,11 +198,11 @@ void hough(cv::Mat &thresholdedImage, cv::Mat &magnitudeDirectionImage, int thre
 				houghOutput.at<float>(x,y) += (float) sum;
 			}
 
-
 		}
 	}
 
-
-
-	 imwrite( "houghOuput.jpg", houghOutput );
+   Mat houghNorm(houghOutput.rows, houghOutput.cols, CV_8UC1);
+   cv::normalize(houghOutput, houghNorm, 0, 255, NORM_MINMAX, CV_8UC1);
+	 imwrite( "houghOutput.jpg", houghNorm );
+   return(houghOutput);
 }

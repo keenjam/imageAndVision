@@ -49,7 +49,7 @@ int main( int argc, const char** argv )
   //1. Read Input Image
 	Mat frame = imread(argv[1], CV_LOAD_IMAGE_COLOR);
 
-	houghTransform(frame);
+	Mat hough = houghTransform(frame);
 
 	// 2. Load the Strong Classifier in a structure called `Cascade'
 	if( !cascade.load( cascade_name ) ){ printf("--(!)Error loading\n"); return -1; };

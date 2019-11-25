@@ -20,7 +20,7 @@ std::vector <std::vector<int> > face15 = {{77,145,45,65},{549,144,39,66}};
 
 //define darts vectors
 std::vector <std::vector<int> > dart0 = {{423,0,194,217}};
-std::vector <std::vector<int> > dart1 = {{165,104252,250}};
+std::vector <std::vector<int> > dart1 = {{165,104,252,250}};
 std::vector <std::vector<int> > dart2 = {{89,84,115,115}};
 std::vector <std::vector<int> > dart3 = {{313,138,86,92}};
 std::vector <std::vector<int> > dart4 = {{151,63,248,257}};
@@ -29,7 +29,7 @@ std::vector <std::vector<int> > dart6 = {{203,107,78,83}};
 std::vector <std::vector<int> > dart7 = {{234,150,180,185}};
 std::vector <std::vector<int> > dart8 = {{60,242,74,109},{826,159,148,159}};
 std::vector <std::vector<int> > dart9 = {{168,11,300,307}};
-std::vector <std::vector<int> > dart10 = {{74,89125,142},{576,119,70,106},{913,413,41,79}};
+std::vector <std::vector<int> > dart10 = {{74,89,125,142},{576,119,70,106},{913,413,41,79}};
 std::vector <std::vector<int> > dart11 = {{167,94,75,96}};
 std::vector <std::vector<int> > dart12 = {{150,57,76,177}};
 std::vector <std::vector<int> > dart13 = {{255,105,169,165}};
