@@ -53,29 +53,29 @@ Mat houghTransform(cv::Mat image)
  int kernelx[3][3] = {{-1,0,1},{-2,0,2},{-1,0,1}};
  applyKernel(gray_image, kernelx, sobelx);
  cv::normalize(sobelx, sobelxnorm, 0, 255, NORM_MINMAX, CV_8UC1);
- imwrite( "sobelx.jpg", sobelxnorm );
+ imwrite( "gen/sobelx.jpg", sobelxnorm );
 
  Mat sobely(gray_image.rows, gray_image.cols, CV_32FC1);
  Mat sobelynorm(gray_image.rows, gray_image.cols, CV_8UC1);
  int kernely[3][3] = {{1,2,1},{0,0,0},{-1,-2,-1}};
  applyKernel(gray_image, kernely, sobely);
  cv::normalize(sobely, sobelynorm, 0, 255, NORM_MINMAX, CV_8UC1);
- imwrite( "sobely.jpg", sobelynorm );
+ imwrite( "gen/sobely.jpg", sobelynorm );
 
  Mat magnitudeImage(gray_image.rows, gray_image.cols, CV_32FC1);
  findGradient(sobelx, sobely, magnitudeImage);
  cv::normalize(magnitudeImage, magnitudeImage, 0, 255, NORM_MINMAX, CV_8UC1);
- imwrite( "magnitudeImage.jpg", magnitudeImage );
+ imwrite( "gen/magnitudeImage.jpg", magnitudeImage );
 
  Mat magnitudeDirectionImage(gray_image.rows, gray_image.cols, CV_32FC1);
  findGradientDirection(sobelx, sobely, magnitudeDirectionImage);
  cv::normalize(magnitudeDirectionImage, magnitudeDirectionImage, 0, 255, NORM_MINMAX, CV_8UC1);
- imwrite( "magnitudeDirectionImage.jpg", magnitudeDirectionImage );
+ imwrite( "gen/magnitudeDirectionImage.jpg", magnitudeDirectionImage );
 
  
  Mat thresholdedImage;
  cv::threshold(magnitudeImage, thresholdedImage, thresh, 255, THRESH_BINARY);
- imwrite( "thresholdedImage.jpg", thresholdedImage );
+ imwrite( "gen/thresholdedImage.jpg", thresholdedImage );
 
  return (hough(thresholdedImage, magnitudeDirectionImage, radmin, radmax));
 
@@ -203,6 +203,6 @@ Mat hough(cv::Mat &thresholdedImage, cv::Mat &magnitudeDirectionImage, float min
 
    Mat houghNorm(houghOutput.rows, houghOutput.cols, CV_8UC1);
    cv::normalize(houghOutput, houghNorm, 0, 255, NORM_MINMAX, CV_8UC1);
-	 imwrite( "houghOutput.jpg", houghNorm );
+	 imwrite( "gen/houghOutput.jpg", houghNorm );
    return(houghOutput);
 }

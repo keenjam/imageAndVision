@@ -39,7 +39,7 @@ int main( int argc, const char** argv )
 {
 
 	truthData = getFaceData(argv[1]);
-	if(argc > 1 && strcmp(argv[2],"dart") == 0) {
+	if(argc > 1 && strcmp(argv[2],"face") != 0) {
 		cascade_name = "dartcascade/cascade.xml";
 		truthData = getDartData(argv[1]);
 	}
@@ -49,13 +49,21 @@ int main( int argc, const char** argv )
   //1. Read Input Image
 	Mat frame = imread(argv[1], CV_LOAD_IMAGE_COLOR);
 
-	Mat hough = houghTransform(frame);
 
 	// 2. Load the Strong Classifier in a structure called `Cascade'
 	if( !cascade.load( cascade_name ) ){ printf("--(!)Error loading\n"); return -1; };
 
+	std::vector<Rect> detected;
 	// 3. Detect objects and Display Result
-	std::vector<Rect> detected = detectAndDisplay( frame );
+	if(strcmp(argv[2],"hough") != 0) {
+		detected = detectAndDisplay( frame );
+	}
+	else{
+		Mat hough = houghTransform(frame);
+		printf("hough\n");
+		//get hough detection
+		//display detected circles
+	}
 
 	displayTruths(frame, truthData);
 
