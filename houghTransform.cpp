@@ -285,7 +285,7 @@ std::vector<std::vector<Point > > houghLine(cv::Mat &thresholdedImage, int thres
   std::vector<std::vector<int> > intersects;
   std::vector<int > vals;
 
-  //float theta = ((float) y / (float) width) * M_PI;
+  //
 
   for (int x = 0; x < height; x++) {
     for (int y = 0; y < width; y++) {
@@ -317,7 +317,15 @@ std::vector<std::vector<Point > > houghLine(cv::Mat &thresholdedImage, int thres
   }
 
   for (int l = 0; l < intersects.size(); l++) {
-    printf("Intersect, x: %d, y: %d\n", intersects[l][0],intersects[l][1]);
+    float theta = ((float) intersects[l][1] / (float) width) * M_PI;
+    int p = (((float) intersects[l][0] - height /2) / (float) height) * maxP;
+    printf("Line - p: %d, theta: %f\n", p, theta);
+
+    int closeX = (int)p*sin(theta);
+    int closeY = (int)p*cos(theta);
+    cv::Point closest = {closeX,closeY};
+
+    printf("Point - x: %d, y: %d\n", closest.x, closest.y);
   }
 
   Mat houghLineNorm(houghLineImage.rows, houghLineImage.cols, CV_8UC1);
