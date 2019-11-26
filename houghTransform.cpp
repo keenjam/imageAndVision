@@ -43,7 +43,7 @@ std::vector<Rect> houghTransform(cv::Mat image)
   int radmin = 35;
   int radmax = 150;
   int houghCircleThresh = 60;
-  int houghLineThresh = 55;
+  int houghLineThresh = 200;
  // LOADING THE IMAGE
 
  //Mat image;
@@ -281,23 +281,43 @@ std::vector<std::vector<Point > > houghLine(cv::Mat &thresholdedImage, int thres
     }
   }
 
+  // {x, y}
+  std::vector<std::vector<int> > intersects;
+  std::vector<int > vals;
+
+  //float theta = ((float) y / (float) width) * M_PI;
+
   for (int x = 0; x < height; x++) {
     for (int y = 0; y < width; y++) {
-      if (houghLineImage.at<float>(x,y) > thresh) {
-        printf("found a line, val: %f\n", houghLineImage.at<float>(x,y));
-        float theta = ((float) y / (float) width) * M_PI;
-        float a = cos(theta);
-        float b = sin(theta);
+      int val = houghLineImage.at<float>(x,y);
+      if (val > thresh) {
 
-        float x0 = a * theta;
-        float y0 = b * theta;
-        int x1 = (int) (x0 + 1000*(-b));
-        int y1 = (int) (y0 + 1000*(a));
-        int x2 = (int) (x0 - 1000*(-b));
-        int y2 = (int) (y0 - 1000*(a));
-        lines.push_back({Point{x1,y1},Point{x2,y2}});
+        if(intersects.size() == 0) {
+          intersects.push_back({x,y});
+          vals.push_back(val);
+        }
+        else {
+          int similar = 0;
+          for (int l = 0; l < intersects.size(); l ++) {
+            if (std::abs(x - intersects[l][0]) < 20) {
+              similar = 1;
+              if(val > vals[l]) {
+                  vals[l] = val;
+                  intersects[l] = {x,y};
+                }
+            }
+          }
+          if(!similar){
+              intersects.push_back({x,y});
+              vals.push_back(val);
+          }
+        }
       }
     }
+  }
+
+  for (int l = 0; l < intersects.size(); l++) {
+    printf("Intersect, x: %d, y: %d\n", intersects[l][0],intersects[l][1]);
   }
 
   Mat houghLineNorm(houghLineImage.rows, houghLineImage.cols, CV_8UC1);
