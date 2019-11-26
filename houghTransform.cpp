@@ -37,7 +37,7 @@ std::vector<Rect> houghTransform(cv::Mat image)
   int thresh = 150;
   int radmin = 35;
   int radmax = 150;
-  int houghThresh = 100;
+  int houghThresh = 60;
  // LOADING THE IMAGE
 
  //Mat image;
@@ -81,7 +81,7 @@ Mat magnitudeDirectionImageNorm(gray_image.rows, gray_image.cols, CV_8UC1);
  cv::threshold(magnitudeImage, thresholdedImage, thresh, 255, THRESH_BINARY);
  imwrite( "gen/thresholdedImage.jpg", thresholdedImage );
 
- return (hough(thresholdedImage, magnitudeDirectionImage, radmin, radmax, thresh));
+ return (hough(thresholdedImage, magnitudeDirectionImage, radmin, radmax, houghThresh));
 
 }
 
@@ -196,6 +196,7 @@ std::vector<Rect> hough(cv::Mat &thresholdedImage, cv::Mat &magnitudeDirectionIm
 	Mat houghOutput(thresholdedImage.rows, thresholdedImage.cols, CV_32FC1);
 
   std::vector<Rect > outputRect;
+  std::vector<int > vals;
 
 	for( int x = 1; x < thresholdedImage.rows-1; x++) {
 		for( int y = 1; y < thresholdedImage.cols-1; y++ ) {
@@ -203,8 +204,28 @@ std::vector<Rect> hough(cv::Mat &thresholdedImage, cv::Mat &magnitudeDirectionIm
 			for (int r = minimum; r < maximum; r++) {
         int val = array[r][x-1][y-1] +  array[r][x][y-1] + array[r][x+1][y-1] + array[r][x-1][y] + array[r][x][y] + array[r][x+1][y] + array[r][x-1][y+1] + array[r][x][y+1] + array[r][x+1][y+1];
         if(val> thresh) {
-          printf("Value: %d\n",val);
-          outputRect.push_back({y-r,x-r, r * 2, r*2});
+          if(outputRect.size() == 0){
+            outputRect.push_back({y-r,x-r, r * 2, r*2});
+            vals.push_back(val);
+          }
+          else {
+            int similar = 0;
+            for (int rect = 0; rect < outputRect.size(); rect ++) {
+              if (std::abs(y-r - outputRect[rect].x) < 100) {
+                similar = 1;
+                if(val > vals[rect]) {
+                  printf("Value: %d\n",val);
+                  printf("UPDATED\n");
+                  vals[rect] = val;
+                  outputRect[rect] = {y-r,x-r, r * 2, r*2};
+                }
+              }
+            }
+            if(!similar){
+                outputRect.push_back({y-r,x-r, r * 2, r*2});
+                vals.push_back(val);
+            }
+          }
 
         }
 				//For drawing 2D hough interpretation
@@ -218,7 +239,7 @@ std::vector<Rect> hough(cv::Mat &thresholdedImage, cv::Mat &magnitudeDirectionIm
 
    Mat houghNorm(houghOutput.rows, houghOutput.cols, CV_8UC1);
    cv::normalize(houghOutput, houghNorm, 0, 255, NORM_MINMAX, CV_8UC1);
-	 imwrite( "gen/houghOutput.jpg", houghNorm );
+	 imwrite( "gen/houghCircleOutput.jpg", houghNorm );
 
    return(outputRect);
 }
