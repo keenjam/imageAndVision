@@ -8,6 +8,7 @@
 #include "houghTransform.h"
 
 using namespace cv;
+#define _USE_MATH_DEFINES
 
 void applyKernel(
 	cv::Mat &input,
@@ -42,7 +43,7 @@ std::vector<Rect> houghTransform(cv::Mat image)
   int radmin = 35;
   int radmax = 150;
   int houghCircleThresh = 60;
-  int houghLineThresh = 10;
+  int houghLineThresh = 55;
  // LOADING THE IMAGE
 
  //Mat image;
@@ -87,6 +88,13 @@ Mat magnitudeDirectionImageNorm(gray_image.rows, gray_image.cols, CV_8UC1);
  imwrite( "gen/thresholdedImage.jpg", thresholdedImage );
 
  std::vector<std::vector<Point > > lines = houghLine(thresholdedImage, houghLineThresh);
+
+ Mat tempImage = image;
+ for (int l = 0; l < lines.size(); l++) {
+  line(tempImage, lines[l][0], lines[l][1],Scalar( 0, 255, 0 ), 2);
+ }
+
+ imwrite("gen/lines.jpg", tempImage);
  return (houghCircle(thresholdedImage, magnitudeDirectionImage, radmin, radmax, houghCircleThresh));
 
 }
@@ -222,8 +230,6 @@ std::vector<Rect> houghCircle(cv::Mat &thresholdedImage, cv::Mat &magnitudeDirec
               if (std::abs(y-r - outputRect[rect].x) < 100) {
                 similar = 1;
                 if(val > vals[rect]) {
-                  printf("Value: %d\n",val);
-                  printf("UPDATED\n");
                   vals[rect] = val;
                   outputRect[rect] = {y-r,x-r, r * 2, r*2};
                 }
@@ -257,22 +263,45 @@ std::vector<std::vector<Point > > houghLine(cv::Mat &thresholdedImage, int thres
 
   std::vector<std::vector<Point > > lines;
 
-  Mat houghLine((thresholdedImage.rows + thresholdedImage.cols) * 2 , 1000, CV_32FC1);
+  int width = 500;
+  int height = 500;
+  int maxP = (thresholdedImage.rows + thresholdedImage.cols) * 2;
+
+  Mat houghLineImage( height, width, CV_32FC1);
 
   for( int x = 0; x < thresholdedImage.rows; x++) {
     for( int y = 0; y < thresholdedImage.cols; y++ ) {
       if(thresholdedImage.at<float>( x, y ) == 255) {
-        for(int i = 0; i < 1000; i ++) {
-          float theta = ((float) i / (float) 1000) * 3.14;
-          int p = (int) x * cos(theta) + y * sin(theta)+ thresholdedImage.rows + thresholdedImage.cols;
-          houghLine.at<float>(p,i) += 1;
+        for(int i = 0; i < width; i ++) {
+          float theta = ((float) i / (float) width) * M_PI;
+          int p = ((x * cos(theta) + y * sin(theta))/maxP) * height + (height/2);
+          houghLineImage.at<float>(p,i) += 1;
         }
       }
     }
   }
 
-  Mat houghLineNorm(houghLine.rows, houghLine.cols, CV_8UC1);
-  cv::normalize(houghLine, houghLineNorm, 0, 255, NORM_MINMAX, CV_8UC1);
+  for (int x = 0; x < height; x++) {
+    for (int y = 0; y < width; y++) {
+      if (houghLineImage.at<float>(x,y) > thresh) {
+        printf("found a line, val: %f\n", houghLineImage.at<float>(x,y));
+        float theta = ((float) y / (float) width) * M_PI;
+        float a = cos(theta);
+        float b = sin(theta);
+
+        float x0 = a * theta;
+        float y0 = b * theta;
+        int x1 = (int) (x0 + 1000*(-b));
+        int y1 = (int) (y0 + 1000*(a));
+        int x2 = (int) (x0 - 1000*(-b));
+        int y2 = (int) (y0 - 1000*(a));
+        lines.push_back({Point{x1,y1},Point{x2,y2}});
+      }
+    }
+  }
+
+  Mat houghLineNorm(houghLineImage.rows, houghLineImage.cols, CV_8UC1);
+  cv::normalize(houghLineImage, houghLineNorm, 0, 255, NORM_MINMAX, CV_8UC1);
   imwrite( "gen/houghLineOutput.jpg", houghLineNorm );
 
   return lines;
