@@ -43,7 +43,7 @@ std::vector<Rect> houghTransform(cv::Mat image)
   int radmin = 35;
   int radmax = 150;
   int houghCircleThresh = 60;
-  int houghLineThresh = 150;
+  int houghLineThresh = 600;
  // LOADING THE IMAGE
 
  //Mat image;
@@ -299,7 +299,7 @@ std::vector<std::vector<Point > > houghLine(cv::Mat &thresholdedImage, int thres
         else {
           int similar = 0;
           for (int l = 0; l < intersects.size(); l ++) {
-            if (std::abs(x - intersects[l][0]) < 10) {
+            if (std::abs(x - intersects[l][0]) < 5) {
               similar = 1;
               if(val > vals[l]) {
                   vals[l] = val;
@@ -325,12 +325,12 @@ std::vector<std::vector<Point > > houghLine(cv::Mat &thresholdedImage, int thres
     int closeY = (int)p*cos(theta);
     cv::Point closest = {closeX,closeY};
 
-    int dotX = (int) closest.x + (500* cos(theta));
-    int dotY = (int) closest.y - (500 * sin(theta));
+    int dotX = (int) closest.x + (2000* cos(theta));
+    int dotY = (int) closest.y - (2000 * sin(theta));
     cv::Point dot = {dotX,dotY};
 
-    int otherDotX = (int) closest.x - (500* cos(theta));
-    int otherDotY = (int) closest.y + (500 * sin(theta));
+    int otherDotX = (int) closest.x - (2000* cos(theta));
+    int otherDotY = (int) closest.y + (2000 * sin(theta));
     cv::Point otherDot = {otherDotX,otherDotY};
 
     printf("Close - x: %d, y: %d\n", closest.x, closest.y);
