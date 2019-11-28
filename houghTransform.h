@@ -6,4 +6,6 @@
 #include <math.h>
 
 
-std::vector<cv::Rect> houghTransform(cv::Mat image);
+std::vector<cv::Rect> circleHoughDetector(cv::Mat image);
+
+int lineHoughDetector(cv::Mat image);

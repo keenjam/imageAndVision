@@ -59,10 +59,11 @@ int main( int argc, const char** argv )
 		detected = detectAndDisplay( frame );
 	}
 	else{
-		detected = houghTransform(frame);
+		std::vector<Rect> violaDetected = detectAndDisplay(frame);
+
+		detected = circleHoughDetector(frame);
 		for( int i = 0; i < detected.size(); i++ )
 		{
-			printf("Rect at x: %d y: %d width: %d height: %d\n",detected[i].x,detected[i].y, detected[i].width,detected[i].height);
 			rectangle(frame, Point(detected[i].x, detected[i].y), Point(detected[i].x + detected[i].width, detected[i].y + detected[i].height), Scalar( 0, 255, 0 ), 2);
 		}
 		//get hough detection
@@ -101,7 +102,7 @@ std::vector<Rect> detectAndDisplay( Mat frame )
 	equalizeHist( frame_gray, frame_gray );
 
 	// 2. Perform Viola-Jones Object Detection
-	cascade.detectMultiScale( frame_gray, detected, 1.1, 1, 0|CV_HAAR_SCALE_IMAGE, Size(50, 50), Size(500,500) );
+	cascade.detectMultiScale( frame_gray, detected, 1.6, 1, 0|CV_HAAR_SCALE_IMAGE, Size(50, 50), Size(500,500) );
 
   // 3. Print number of objects found
 	std::cout << detected.size() << std::endl;

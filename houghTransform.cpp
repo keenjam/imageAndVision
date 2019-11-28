@@ -37,20 +37,14 @@ std::vector<std::vector<Point> > houghLine(
   cv::Mat &magnitudeDirectionImage,
   int thresh);
 
-std::vector<Rect> houghTransform(cv::Mat image)
+Mat magnitudeImage;
+Mat magnitudeDirectionImage;
+Mat thresholdedImage;
+
+void setup(cv::Mat image)
 {
 
   int thresh = 150;
-  int radmin = 35;
-  int radmax = 150;
-  int houghCircleThresh = 60;
-  int houghLineThresh = 600;
- // LOADING THE IMAGE
-
- //Mat image;
- //image = imread( imageName, 1 );
-
-
 
  // CONVERT COLOUR, BLUR AND SAVE
  Mat gray_image;
@@ -70,33 +64,53 @@ std::vector<Rect> houghTransform(cv::Mat image)
  cv::normalize(sobely, sobelynorm, 0, 255, NORM_MINMAX, CV_8UC1);
  imwrite( "gen/sobely.jpg", sobelynorm );
 
- Mat magnitudeImage(gray_image.rows, gray_image.cols, CV_32FC1);
+ magnitudeImage = Mat(gray_image.rows, gray_image.cols, CV_32FC1);
  findGradient(sobelx, sobely, magnitudeImage);
  Mat magnitudeImageNorm(gray_image.rows, gray_image.cols, CV_8UC1);
  cv::normalize(magnitudeImage, magnitudeImageNorm, 0, 255, NORM_MINMAX, CV_8UC1);
  imwrite( "gen/magnitudeImage.jpg", magnitudeImageNorm );
 
- Mat magnitudeDirectionImage(gray_image.rows, gray_image.cols, CV_32FC1);
+ magnitudeDirectionImage = Mat(gray_image.rows, gray_image.cols, CV_32FC1);
  findGradientDirection(sobelx, sobely, magnitudeDirectionImage);
-Mat magnitudeDirectionImageNorm(gray_image.rows, gray_image.cols, CV_8UC1);
+ Mat magnitudeDirectionImageNorm(gray_image.rows, gray_image.cols, CV_8UC1);
  cv::normalize(magnitudeDirectionImage, magnitudeDirectionImageNorm, 0, 255, NORM_MINMAX, CV_8UC1);
  imwrite( "gen/magnitudeDirectionImage.jpg", magnitudeDirectionImageNorm );
 
  
- Mat thresholdedImage;
  cv::threshold(magnitudeImage, thresholdedImage, thresh, 255, THRESH_BINARY);
  imwrite( "gen/thresholdedImage.jpg", thresholdedImage );
 
- std::vector<std::vector<Point > > lines = houghLine(thresholdedImage, magnitudeDirectionImage, houghLineThresh);
+}
 
- Mat tempImage = image;
- for (int l = 0; l < lines.size(); l++) {
-  line(tempImage, lines[l][0], lines[l][1],Scalar( 0, 255, 0 ), 2);
- }
+std::vector<Rect> circleHoughDetector(cv::Mat image) {
+  setup(image);
 
- imwrite("gen/lines.jpg", tempImage);
- return (houghCircle(thresholdedImage, magnitudeDirectionImage, radmin, radmax, houghCircleThresh));
+  int radmin = 35;
+  int radmax = 150;
+  int houghCircleThresh = 60;
 
+  return (houghCircle(thresholdedImage, magnitudeDirectionImage, radmin, radmax, houghCircleThresh));
+
+
+}
+
+int lineHoughDetector(cv::Mat image) {
+  setup(image);
+
+  int houghLineThresh = 325 * image.rows/550;
+
+  std::vector<std::vector<Point > > lines = houghLine(thresholdedImage, magnitudeDirectionImage, houghLineThresh);
+
+   Mat lineImage = image.clone();
+   int count = 0;
+   for (int l = 0; l < lines.size(); l++) {
+    count += 1;
+    line(lineImage, lines[l][0], lines[l][1],Scalar( 0, 255, 0 ), 2);
+   }
+
+   imwrite("gen/lines.jpg", lineImage);
+
+   return count;
 }
 
 void applyKernel(cv::Mat &input, int kernel[3][3], cv::Mat &kernelOutput)
