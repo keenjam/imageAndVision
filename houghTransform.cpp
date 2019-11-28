@@ -34,6 +34,7 @@ std::vector<Rect> houghCircle(
 
 std::vector<std::vector<Point> > houghLine(
   cv::Mat &thresholdedImage,
+  cv::Mat &magnitudeDirectionImage,
   int thresh);
 
 std::vector<Rect> houghTransform(cv::Mat image)
@@ -54,7 +55,6 @@ std::vector<Rect> houghTransform(cv::Mat image)
  // CONVERT COLOUR, BLUR AND SAVE
  Mat gray_image;
  cvtColor( image, gray_image, CV_BGR2GRAY );
-
 
  Mat sobelx(gray_image.rows, gray_image.cols, CV_32FC1);
  Mat sobelxnorm(gray_image.rows, gray_image.cols, CV_8UC1);
@@ -87,7 +87,7 @@ Mat magnitudeDirectionImageNorm(gray_image.rows, gray_image.cols, CV_8UC1);
  cv::threshold(magnitudeImage, thresholdedImage, thresh, 255, THRESH_BINARY);
  imwrite( "gen/thresholdedImage.jpg", thresholdedImage );
 
- std::vector<std::vector<Point > > lines = houghLine(thresholdedImage, houghLineThresh);
+ std::vector<std::vector<Point > > lines = houghLine(thresholdedImage, magnitudeDirectionImage, houghLineThresh);
 
  Mat tempImage = image;
  for (int l = 0; l < lines.size(); l++) {
@@ -259,13 +259,14 @@ std::vector<Rect> houghCircle(cv::Mat &thresholdedImage, cv::Mat &magnitudeDirec
    return(outputRect);
 }
 
-std::vector<std::vector<Point > > houghLine(cv::Mat &thresholdedImage, int thresh) {
+std::vector<std::vector<Point > > houghLine(cv::Mat &thresholdedImage, cv::Mat &magnitudeDirectionImage, int thresh) {
 
   std::vector<std::vector<Point > > lines;
 
   int width = 500;
   int height = 500;
   int maxP = (thresholdedImage.rows + thresholdedImage.cols) * 2;
+  float thetaError = 0.05f;
 
   Mat houghLineImage( height, width, CV_32FC1);
 
@@ -273,9 +274,12 @@ std::vector<std::vector<Point > > houghLine(cv::Mat &thresholdedImage, int thres
     for( int y = 0; y < thresholdedImage.cols; y++ ) {
       if(thresholdedImage.at<float>( x, y ) == 255) {
         for(int i = 0; i < width; i ++) {
+
           float theta = ((float) i / (float) width) * M_PI;
-          int p = ((x * cos(theta) + y * sin(theta))/maxP) * height + (height/2);
-          houghLineImage.at<float>(p,i) += 1;
+          if (theta > magnitudeDirectionImage.at<float>(x,y) - thetaError || theta < magnitudeDirectionImage.at<float>(x,y) + thetaError) {
+            int p = ((x * cos(theta) + y * sin(theta))/maxP) * height + (height/2);
+            houghLineImage.at<float>(p,i) += 1;
+          }
         }
       }
     }
@@ -291,7 +295,6 @@ std::vector<std::vector<Point > > houghLine(cv::Mat &thresholdedImage, int thres
     for (int y = 0; y < width; y++) {
       int val = houghLineImage.at<float>(x,y);
       if (val > thresh) {
-        printf("value\n");
         if(intersects.size() == 0) {
           intersects.push_back({x,y});
           vals.push_back(val);
