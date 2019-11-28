@@ -85,7 +85,7 @@ int main( int argc, const char** argv )
 		}
 
 		for (int box = 0; box < violaDetected.size(); box++){
-			if(noLines[box] > 3 && noLines[box] < 20) {
+			if(noLines[box] > 2 && noLines[box] < 20) {
 				rectangle(frame, Point(violaDetected[box].x, violaDetected[box].y), Point(violaDetected[box].x + violaDetected[box].width, violaDetected[box].y + violaDetected[box].height), Scalar( 255, 0, 0 ), 2);
 			}
 		}

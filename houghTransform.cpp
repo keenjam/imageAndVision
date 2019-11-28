@@ -283,7 +283,7 @@ std::vector<std::vector<Point > > houghLine(cv::Mat &thresholdedImage, cv::Mat &
   int maxP = (thresholdedImage.rows + thresholdedImage.cols) * 2;
   float thetaError = 0.005f;
 
-  Mat houghLineImage( height, width, CV_32FC1);
+  Mat houghLineImage( height, width, CV_32FC1, Scalar(0));
 
   for( int x = 0; x < thresholdedImage.rows; x++) {
     for( int y = 0; y < thresholdedImage.cols; y++ ) {
