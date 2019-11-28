@@ -266,7 +266,7 @@ std::vector<std::vector<Point > > houghLine(cv::Mat &thresholdedImage, cv::Mat &
   int width = 500;
   int height = 500;
   int maxP = (thresholdedImage.rows + thresholdedImage.cols) * 2;
-  float thetaError = 0.05f;
+  float thetaError = 0.005f;
 
   Mat houghLineImage( height, width, CV_32FC1);
 
@@ -302,7 +302,7 @@ std::vector<std::vector<Point > > houghLine(cv::Mat &thresholdedImage, cv::Mat &
         else {
           int similar = 0;
           for (int l = 0; l < intersects.size(); l ++) {
-            if (std::abs(x - intersects[l][0]) < 5) {
+            if (std::abs(x - intersects[l][0]) < 30 && std::abs(y - intersects[l][1]) < 30) {
               similar = 1;
               if(val > vals[l]) {
                   vals[l] = val;
@@ -336,8 +336,8 @@ std::vector<std::vector<Point > > houghLine(cv::Mat &thresholdedImage, cv::Mat &
     int otherDotY = (int) closest.y + (2000 * sin(theta));
     cv::Point otherDot = {otherDotX,otherDotY};
 
-    printf("Close - x: %d, y: %d\n", closest.x, closest.y);
-    printf("Dot - x: %d, y: %d\n", dot.x, dot.y);
+    // printf("Close - x: %d, y: %d\n", closest.x, closest.y);
+    // printf("Dot - x: %d, y: %d\n", dot.x, dot.y);
     lines.push_back({otherDot,dot});
   }
 
