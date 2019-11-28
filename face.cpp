@@ -23,6 +23,7 @@ using namespace cv;
 
 /** Function Headers */
 std::vector<Rect> detectAndDisplay( Mat frame );
+std::vector<Rect> detectNoDisplay( Mat frame );
 void displayTruths(Mat frame, std::vector<std::vector<int> > data);
 int getTP(std::vector<std::vector<int> > data, std::vector<Rect> detected, Mat frame);
 
@@ -59,15 +60,41 @@ int main( int argc, const char** argv )
 		detected = detectAndDisplay( frame );
 	}
 	else{
-		std::vector<Rect> violaDetected = detectAndDisplay(frame);
-
+		//Detect circles
 		detected = circleHoughDetector(frame);
+
+		//Use viola jones and 
+		std::vector<Rect> violaDetected = detectNoDisplay(frame);
+		std::vector<int> noLines{};
+
+		for (int box = 0; box < violaDetected.size(); box++){
+			Mat area;
+			float factor = 250.0/frame(violaDetected[box]).rows;
+
+			int xSize = frame(violaDetected[box]).rows * factor;
+			int ySize = frame(violaDetected[box]).cols * factor;
+
+			//printf("xFactor: %f, yFactor: %f\n", xFactor,yFactor);
+			//printf("x: %d, y: %d\n", xSize,ySize);
+
+			resize(frame(violaDetected[box]),area, Size(xSize,ySize));
+			int lines = lineHoughDetector(area);
+			//Debug output for viola jones boxes
+			noLines.push_back(lines);
+			printf("Detected %d lines\n", lines);
+		}
+
+		for (int box = 0; box < violaDetected.size(); box++){
+			if(noLines[box] > 3 && noLines[box] < 20) {
+				rectangle(frame, Point(violaDetected[box].x, violaDetected[box].y), Point(violaDetected[box].x + violaDetected[box].width, violaDetected[box].y + violaDetected[box].height), Scalar( 255, 0, 0 ), 2);
+			}
+		}
+
 		for( int i = 0; i < detected.size(); i++ )
 		{
 			rectangle(frame, Point(detected[i].x, detected[i].y), Point(detected[i].x + detected[i].width, detected[i].y + detected[i].height), Scalar( 0, 255, 0 ), 2);
 		}
-		//get hough detection
-		//display detected circles
+		
 	}
 
 	displayTruths(frame, truthData);
@@ -91,6 +118,26 @@ int main( int argc, const char** argv )
 	return 0;
 }
 
+
+/** @function detectAndDisplay */
+std::vector<Rect> detectNoDisplay( Mat frame )
+{
+	std::vector<Rect> detected;
+	Mat frame_gray;
+
+	// 1. Prepare Image by turning it into Grayscale and normalising lighting
+	cvtColor( frame, frame_gray, CV_BGR2GRAY );
+	equalizeHist( frame_gray, frame_gray );
+
+	// 2. Perform Viola-Jones Object Detection
+	cascade.detectMultiScale( frame_gray, detected, 1.6, 1, 0|CV_HAAR_SCALE_IMAGE, Size(50, 50), Size(500,500) );
+
+  // 3. Print number of objects found
+	std::cout << detected.size() << std::endl;
+
+	return detected;
+
+}
 /** @function detectAndDisplay */
 std::vector<Rect> detectAndDisplay( Mat frame )
 {

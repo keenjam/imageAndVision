@@ -97,7 +97,8 @@ std::vector<Rect> circleHoughDetector(cv::Mat image) {
 int lineHoughDetector(cv::Mat image) {
   setup(image);
 
-  int houghLineThresh = 325 * image.rows/550;
+  int houghLineThresh = 250;
+  printf("thresh: %d\n", houghLineThresh);
 
   std::vector<std::vector<Point > > lines = houghLine(thresholdedImage, magnitudeDirectionImage, houghLineThresh);
 
@@ -316,7 +317,7 @@ std::vector<std::vector<Point > > houghLine(cv::Mat &thresholdedImage, cv::Mat &
         else {
           int similar = 0;
           for (int l = 0; l < intersects.size(); l ++) {
-            if (std::abs(x - intersects[l][0]) < 30 && std::abs(y - intersects[l][1]) < 30) {
+            if (std::abs(x - intersects[l][0]) < 5 || std::abs(y - intersects[l][1]) < 5) {
               similar = 1;
               if(val > vals[l]) {
                   vals[l] = val;
@@ -336,7 +337,7 @@ std::vector<std::vector<Point > > houghLine(cv::Mat &thresholdedImage, cv::Mat &
   for (int l = 0; l < intersects.size(); l++) {
     float theta = ((float) intersects[l][1] / (float) width) * M_PI;
     int p = (((float) intersects[l][0] - height /2) / (float) height) * maxP;
-    printf("Line - p: %d, theta: %f\n", p, theta);
+    //printf("Line - p: %d, theta: %f\n", p, theta);
 
     int closeX = (int)p*sin(theta);
     int closeY = (int)p*cos(theta);
