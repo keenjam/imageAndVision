@@ -24,15 +24,16 @@ using namespace cv;
 /** Function Headers */
 std::vector<Rect> detectAndDisplay( Mat frame );
 std::vector<Rect> detectNoDisplay( Mat frame );
-void displayTruths(Mat frame, std::vector<std::vector<int> > data);
-int getTP(std::vector<std::vector<int> > data, std::vector<Rect> detected, Mat frame);
+void displayTruths(Mat frame, std::vector<Rect > data);
+int getTP(std::vector<Rect > data, std::vector<Rect> detected, Mat frame);
+float getIOU(cv::Rect truth, cv::Rect detected);
 
 
 /** Global variables */
 String cascade_name = "frontalface.xml";
 CascadeClassifier cascade;
 float IOUthresh = 0.45;
-std::vector<std::vector<int> > truthData;
+std::vector<Rect > truthData;
 
 
 /** @function main */
@@ -61,7 +62,7 @@ int main( int argc, const char** argv )
 	}
 	else{
 		//Detect circles
-		detected = circleHoughDetector(frame);
+		std::vector<Rect> circles = circleHoughDetector(frame);
 
 		//Use viola jones and 
 		std::vector<Rect> violaDetected = detectNoDisplay(frame);
@@ -84,11 +85,32 @@ int main( int argc, const char** argv )
 			printf("Detected %d lines\n", lines);
 		}
 
+    std::vector<Rect> validViola{};
+
 		for (int box = 0; box < violaDetected.size(); box++){
 			if(noLines[box] > 2 && noLines[box] < 20) {
+        validViola.push_back(violaDetected[box]);
 				rectangle(frame, Point(violaDetected[box].x, violaDetected[box].y), Point(violaDetected[box].x + violaDetected[box].width, violaDetected[box].y + violaDetected[box].height), Scalar( 255, 0, 0 ), 2);
 			}
 		}
+
+    for (int circle = 0; circle < circles.size(); circle++){
+      rectangle(frame, Point(circles[circle].x, circles[circle].y), Point(circles[circle].x + circles[circle].width, circles[circle].y + circles[circle].height), Scalar( 255, 255, 0 ), 2);
+    }
+
+    if(circles.size() == 0) {
+      detected = validViola;
+    }
+    else if (validViola.size() == 0) {
+      detected = circles;
+    }
+    else {
+      for (int circle = 0; circle < circles.size(); circle++){
+        for (int box = 0; box < validViola.size(); box ++) {
+
+        }
+      }
+    }
 
 		for( int i = 0; i < detected.size(); i++ )
 		{
@@ -164,36 +186,41 @@ std::vector<Rect> detectAndDisplay( Mat frame )
 
 }
 
-void displayTruths(Mat frame, std::vector<std::vector<int> > data) {
+void displayTruths(Mat frame, std::vector<Rect > data) {
 
 	for (int truth = 0; truth < data.size(); truth++) {
-		rectangle(frame, Point(data[truth][0], data[truth][1]), Point(data[truth][0] + data[truth][2], data[truth][1] + data[truth][3]), Scalar( 0, 0, 255 ), 2);
+		rectangle(frame, Point(data[truth].x, data[truth].y), Point(data[truth].x + data[truth].width, data[truth].y + data[truth].height), Scalar( 0, 0, 255 ), 2);
 	}
 }
 
-int getTP(std::vector<std::vector<int> > data, std::vector<Rect> detected, Mat frame) {
+int getTP(std::vector<Rect > data, std::vector<Rect> detected, Mat frame) {
 	int count = 0;
 
-	for (int item = 0; item < detected.size(); item++) {
-		float IOU = 0;
+	for (int truth = 0; truth < data.size(); truth++) {
+    int isDet = 0;
+	  for (int item = 0; item < detected.size(); item++) {
+		  float IOU = getIOU(data[truth], detected[item]);
 
-		for (int truth = 0; truth < data.size(); truth++) {
-			int interRect[] = {std::max(data[truth][0],detected[item].x), std::max(data[truth][1],detected[item].y), std::min(data[truth][0]+data[truth][2],detected[item].x + detected[item].width), std::min(data[truth][1]+data[truth][3],detected[item].y + detected[item].height)};
-
-			//draw intersecting area
-			//rectangle(frame, Point(interRect[0], interRect[1]), Point(interRect[2], interRect[3]), Scalar( 255, 0, 0 ), 2);
-
-			int interArea = std::max(0, interRect[2] - interRect[0]) * std::max(0, interRect[3] - interRect[1]);
-			int truthArea = data[truth][2] * data[truth][3];
-			int detectArea = detected[item].width * detected[item].height;
-
-			IOU = std::max(IOU,(float) interArea / (float) (truthArea + detectArea - interArea));
+		  if (IOU >= IOUthresh) {
+			  isDet = 1;
+		  }
 		}
+    count += isDet;
 
-		if (IOU >= IOUthresh) {
-			count += 1;
-		}
 	}
 	return count;
 
+}
+
+float getIOU(cv::Rect truth, cv::Rect detected) {
+  float IOU = 0;
+  int interRect[] = {std::max(truth.x,detected.x), std::max(truth.y,detected.y), std::min(truth.x+truth.width,detected.x + detected.width), std::min(truth.y+truth.height,detected.y + detected.height)};
+
+  int interArea = std::max(0, interRect[2] - interRect[0]) * std::max(0, interRect[3] - interRect[1]);
+  int truthArea = truth.width * truth.height;
+  int detectArea = detected.width * detected.height;
+
+  IOU = std::max(IOU,(float) interArea / (float) (truthArea + detectArea - interArea));
+
+  return (IOU);
 }

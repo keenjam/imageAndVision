@@ -4,6 +4,7 @@
 #include <vector>
 #include <map>
 #include <string>
+#include <opencv/cv.h>
 
-std::vector <std::vector<int> > getFaceData(std::string file);
-std::vector <std::vector<int> > getDartData(std::string file);
+std::vector <cv::Rect > getFaceData(std::string file);
+std::vector <cv::Rect > getDartData(std::string file);

@@ -57,7 +57,7 @@ void setup(cv::Mat image)
  cv::normalize(sobelx, sobelxnorm, 0, 255, NORM_MINMAX, CV_8UC1);
  imwrite( "gen/sobelx.jpg", sobelxnorm );
 
- Mat sobely(gray_image.rows, gray_image.cols, CV_32FC1);
+ Mat sobely(gray_image.rows, gray_image.cols, CV_32FC1, Scalar(0));
  Mat sobelynorm(gray_image.rows, gray_image.cols, CV_8UC1);
  int kernely[3][3] = {{1,2,1},{0,0,0},{-1,-2,-1}};
  applyKernel(gray_image, kernely, sobely);
@@ -224,7 +224,7 @@ std::vector<Rect> houghCircle(cv::Mat &thresholdedImage, cv::Mat &magnitudeDirec
 
 		}
 	}
-	Mat houghCircleOutput(thresholdedImage.rows, thresholdedImage.cols, CV_32FC1);
+	Mat houghCircleOutput(thresholdedImage.rows, thresholdedImage.cols, CV_32FC1, Scalar(0));
 
   std::vector<Rect > outputRect;
   std::vector<int > vals;
