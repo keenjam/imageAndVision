@@ -98,7 +98,7 @@ int lineHoughDetector(cv::Mat image) {
   setup(image);
 
   int houghLineThresh = 250;
-  printf("thresh: %d\n", houghLineThresh);
+  //printf("thresh: %d\n", houghLineThresh);
 
   std::vector<std::vector<Point > > lines = houghLine(thresholdedImage, magnitudeDirectionImage, houghLineThresh);
 

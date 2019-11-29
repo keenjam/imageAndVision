@@ -82,7 +82,7 @@ int main( int argc, const char** argv )
 			int lines = lineHoughDetector(area);
 			//Debug output for viola jones boxes
 			noLines.push_back(lines);
-			printf("Detected %d lines\n", lines);
+			//printf("Detected %d lines\n", lines);
 		}
 
     std::vector<Rect> validViola{};
@@ -90,13 +90,15 @@ int main( int argc, const char** argv )
 		for (int box = 0; box < violaDetected.size(); box++){
 			if(noLines[box] > 2 && noLines[box] < 20) {
         validViola.push_back(violaDetected[box]);
-				rectangle(frame, Point(violaDetected[box].x, violaDetected[box].y), Point(violaDetected[box].x + violaDetected[box].width, violaDetected[box].y + violaDetected[box].height), Scalar( 255, 0, 0 ), 2);
+        //Draw viola estimates
+				//rectangle(frame, Point(violaDetected[box].x, violaDetected[box].y), Point(violaDetected[box].x + violaDetected[box].width, violaDetected[box].y + violaDetected[box].height), Scalar( 255, 0, 0 ), 2);
 			}
 		}
 
-    for (int circle = 0; circle < circles.size(); circle++){
-      rectangle(frame, Point(circles[circle].x, circles[circle].y), Point(circles[circle].x + circles[circle].width, circles[circle].y + circles[circle].height), Scalar( 255, 255, 0 ), 2);
-    }
+    //Draw circle estimates
+    // for (int circle = 0; circle < circles.size(); circle++){
+    //   rectangle(frame, Point(circles[circle].x, circles[circle].y), Point(circles[circle].x + circles[circle].width, circles[circle].y + circles[circle].height), Scalar( 255, 255, 0 ), 2);
+    // }
 
     if(circles.size() == 0) {
       detected = validViola;
@@ -106,8 +108,26 @@ int main( int argc, const char** argv )
     }
     else {
       for (int circle = 0; circle < circles.size(); circle++){
+        float maxIOU = 0;
+        int bestGuess = -1;
         for (int box = 0; box < validViola.size(); box ++) {
+          float IOU = getIOU(circles[circle], validViola[box]);
+          
+          if(IOU > maxIOU) {
+            maxIOU = IOU;
+            bestGuess = box;
+          }
+        }
 
+        if(bestGuess != -1){
+          int x = min(circles[circle].x, validViola[bestGuess].x);
+          int y = min(circles[circle].y, validViola[bestGuess].y);
+
+          int maxX = max(circles[circle].x + circles[circle].width, validViola[bestGuess].x + validViola[bestGuess].width);
+          int maxY = max(circles[circle].y + circles[circle].height, validViola[bestGuess].y + validViola[bestGuess].height);
+
+
+          detected.push_back({x,y,maxX-x, maxY-y});
         }
       }
     }
