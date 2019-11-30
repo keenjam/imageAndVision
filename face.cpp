@@ -136,6 +136,8 @@ int main( int argc, const char** argv )
 		{
 			rectangle(frame, Point(detected[i].x, detected[i].y), Point(detected[i].x + detected[i].width, detected[i].y + detected[i].height), Scalar( 0, 255, 0 ), 2);
 		}
+
+    int throwaway = lineHoughDetector(frame);
 		
 	}
 
