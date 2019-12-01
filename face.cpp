@@ -97,10 +97,15 @@ int main( int argc, const char** argv )
     std::vector<Rect> validViola{};
 
 		for (int box = 0; box < violaDetected.size(); box++){
-			if(noLines[box] > 2 && noLines[box] < 20 && noEllipse[box] > 2) {
+
+      if(noEllipse[box] > 5 && noEllipse[box] < 10) {
+          rectangle(frame, Point(violaDetected[box].x, violaDetected[box].y), Point(violaDetected[box].x + violaDetected[box].width, violaDetected[box].y + violaDetected[box].height), Scalar( 255, 0, 0 ), 2);
+        }
+
+			if(noLines[box] > 2 && noLines[box] < 20) {
         validViola.push_back(violaDetected[box]);
         //Draw viola estimates
-				//rectangle(frame, Point(violaDetected[box].x, violaDetected[box].y), Point(violaDetected[box].x + violaDetected[box].width, violaDetected[box].y + violaDetected[box].height), Scalar( 255, 0, 0 ), 2);
+        
 			}
 
 

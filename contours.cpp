@@ -22,7 +22,7 @@ int setupForContours(cv::Mat image) {
   blur( grey_image, grey_image, Size(3,3));
 
   Mat canny_output;
-  Canny( grey_image, canny_output, 300, 455);
+  Canny( grey_image, canny_output, 150, 250);
 
   imwrite( "cannyOutput.jpg", canny_output);
 
@@ -34,7 +34,7 @@ int setupForContours(cv::Mat image) {
   std::vector<RotatedRect> minEllipse( contours.size() );
   for( size_t i = 0; i < contours.size(); i++) {
     minRect[i] = minAreaRect( contours[i]);
-    if( contours[i].size() > 70 && contours[i].size() < 300  ) {
+    if( contours[i].size() > 50) {
       minEllipse[i] = fitEllipse(contours[i]);
     }
   }
