@@ -13,6 +13,7 @@
 #include "opencv2/imgproc/imgproc.hpp"
 #include "data.h"
 #include "houghTransform.h"
+#include "contours.h"
 #include <iostream>
 #include <stdio.h>
 #include <vector>
@@ -50,6 +51,8 @@ int main( int argc, const char** argv )
 	strstr(imageName, argv[1]);
   //1. Read Input Image
 	Mat frame = imread(argv[1], CV_LOAD_IMAGE_COLOR);
+	//Mat contoursFrame = frame.clone();
+
 
 
 	// 2. Load the Strong Classifier in a structure called `Cascade'
@@ -64,12 +67,14 @@ int main( int argc, const char** argv )
 		//Detect circles
 		std::vector<Rect> circles = circleHoughDetector(frame);
 
-		//Use viola jones and 
+		//Use viola jones and
 		std::vector<Rect> violaDetected = detectNoDisplay(frame);
 		std::vector<int> noLines{};
+		std::vector<int> noEllipse{};
 
 		for (int box = 0; box < violaDetected.size(); box++){
 			Mat area;
+			Mat area2;
 			float factor = 250.0/frame(violaDetected[box]).rows;
 
 			int xSize = frame(violaDetected[box]).rows * factor;
@@ -79,20 +84,26 @@ int main( int argc, const char** argv )
 			//printf("x: %d, y: %d\n", xSize,ySize);
 
 			resize(frame(violaDetected[box]),area, Size(xSize,ySize));
+			area2 = area.clone();
 			int lines = lineHoughDetector(area);
+			int ellipse = setupForContours(area2);
 			//Debug output for viola jones boxes
 			noLines.push_back(lines);
+			noEllipse.push_back(ellipse);
+			printf("No. of Ellipse: %d\n", noEllipse[box]);
 			//printf("Detected %d lines\n", lines);
 		}
 
     std::vector<Rect> validViola{};
 
 		for (int box = 0; box < violaDetected.size(); box++){
-			if(noLines[box] > 2 && noLines[box] < 20) {
+			if(noLines[box] > 2 && noLines[box] < 20 && noEllipse[box] > 2) {
         validViola.push_back(violaDetected[box]);
         //Draw viola estimates
 				//rectangle(frame, Point(violaDetected[box].x, violaDetected[box].y), Point(violaDetected[box].x + violaDetected[box].width, violaDetected[box].y + violaDetected[box].height), Scalar( 255, 0, 0 ), 2);
 			}
+
+
 		}
 
     //Draw circle estimates
@@ -112,7 +123,7 @@ int main( int argc, const char** argv )
         int bestGuess = -1;
         for (int box = 0; box < validViola.size(); box ++) {
           float IOU = getIOU(circles[circle], validViola[box]);
-          
+
           if(IOU > maxIOU) {
             maxIOU = IOU;
             bestGuess = box;
@@ -137,8 +148,9 @@ int main( int argc, const char** argv )
 			rectangle(frame, Point(detected[i].x, detected[i].y), Point(detected[i].x + detected[i].width, detected[i].y + detected[i].height), Scalar( 0, 255, 0 ), 2);
 		}
 
+
     int throwaway = lineHoughDetector(frame);
-		
+
 	}
 
 	displayTruths(frame, truthData);
@@ -158,6 +170,7 @@ int main( int argc, const char** argv )
 
 
 	imwrite( "detected.jpg", frame );
+
 
 	return 0;
 }
