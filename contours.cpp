@@ -32,10 +32,14 @@ int setupForContours(cv::Mat image) {
 
   std::vector<RotatedRect> minRect( contours.size() );
   std::vector<RotatedRect> minEllipse( contours.size() );
+
+  int count = 0;
+
   for( size_t i = 0; i < contours.size(); i++) {
     minRect[i] = minAreaRect( contours[i]);
     if( contours[i].size() > 70 && contours[i].size() < 300  ) {
       minEllipse[i] = fitEllipse(contours[i]);
+      count += 1;
     }
   }
 
@@ -55,11 +59,6 @@ int setupForContours(cv::Mat image) {
       //line( drawing, rect_points[j], rect_points[(j+1)%4], Scalar( 255, 255, 0 ));
     }
 
-  }
-
-  int count = 0;
-  for(int e = 0; e < minEllipse.size(); e++) {
-    count += 1;
   }
 
   imwrite( "contours.jpg", drawing );
