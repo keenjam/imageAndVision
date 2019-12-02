@@ -51,7 +51,7 @@ int main( int argc, const char** argv )
 	strstr(imageName, argv[1]);
   //1. Read Input Image
 	Mat frame = imread(argv[1], CV_LOAD_IMAGE_COLOR);
-	//Mat contoursFrame = frame.clone();
+	Mat contoursFrame = frame.clone();
 
 
 
@@ -60,17 +60,17 @@ int main( int argc, const char** argv )
 
 	std::vector<Rect> detected;
 	// 3. Detect objects and Display Result
-	if(strcmp(argv[2],"hough") != 0) {
+	if(strcmp(argv[2],"face") == 0 || strcmp(argv[2], "dart") == 0) {
 		detected = detectAndDisplay( frame );
 	}
-	else{
+	else if(strcmp(argv[2],"hough") == 0){
 		//Detect circles
 		std::vector<Rect> circles = circleHoughDetector(frame);
 
 		//Use viola jones and
 		std::vector<Rect> violaDetected = detectNoDisplay(frame);
 		std::vector<int> noLines{};
-		std::vector<int> noEllipse{};
+		//std::vector<int> noEllipse{};
 
 		for (int box = 0; box < violaDetected.size(); box++){
 			Mat area;
@@ -86,21 +86,26 @@ int main( int argc, const char** argv )
 			resize(frame(violaDetected[box]),area, Size(xSize,ySize));
 			area2 = area.clone();
 			int lines = lineHoughDetector(area);
-			int ellipse = setupForContours(area2);
+			//int ellipse = setupForContours(area2);
 			//Debug output for viola jones boxes
 			noLines.push_back(lines);
-			noEllipse.push_back(ellipse);
-			printf("No. of Ellipse: %d\n", noEllipse[box]);
+			//noEllipse.push_back(ellipse);
+			//printf("No. of Ellipse: %d\n", noEllipse[box]);
 			//printf("Detected %d lines\n", lines);
 		}
 
     std::vector<Rect> validViola{};
 
 		for (int box = 0; box < violaDetected.size(); box++){
-			if(noLines[box] > 2 && noLines[box] < 20 && noEllipse[box] > 2) {
+
+      // if(noEllipse[box] > 5 && noEllipse[box] < 10) {
+      //     rectangle(frame, Point(violaDetected[box].x, violaDetected[box].y), Point(violaDetected[box].x + violaDetected[box].width, violaDetected[box].y + violaDetected[box].height), Scalar( 255, 0, 0 ), 2);
+      // }
+
+			if(noLines[box] > 2 && noLines[box] < 20) {
         validViola.push_back(violaDetected[box]);
         //Draw viola estimates
-				//rectangle(frame, Point(violaDetected[box].x, violaDetected[box].y), Point(violaDetected[box].x + violaDetected[box].width, violaDetected[box].y + violaDetected[box].height), Scalar( 255, 0, 0 ), 2);
+
 			}
 
 
@@ -152,6 +157,107 @@ int main( int argc, const char** argv )
     int throwaway = lineHoughDetector(frame);
 
 	}
+	else if (strcmp(argv[2], "contour") == 0) {
+		std::vector<Rect> contourBoxes = setupForContours(contoursFrame);
+		std::vector<Point> contourBoxCentres;
+
+		//Detect circles
+		std::vector<Rect> circles = circleHoughDetector(frame);
+
+		//Use viola jones and
+		std::vector<Rect> violaDetected = detectNoDisplay(frame);
+		std::vector<int> noLines{};
+		//std::vector<int> noEllipse{};
+
+		for (int box = 0; box < violaDetected.size(); box++){
+			Mat area;
+			Mat area2;
+			float factor = 250.0/frame(violaDetected[box]).rows;
+
+			int xSize = frame(violaDetected[box]).rows * factor;
+			int ySize = frame(violaDetected[box]).cols * factor;
+
+			//printf("xFactor: %f, yFactor: %f\n", xFactor,yFactor);
+			//printf("x: %d, y: %d\n", xSize,ySize);
+
+			resize(frame(violaDetected[box]),area, Size(xSize,ySize));
+			area2 = area.clone();
+			int lines = lineHoughDetector(area);
+			//int ellipse = setupForContours(area2);
+			//Debug output for viola jones boxes
+			noLines.push_back(lines);
+			//noEllipse.push_back(ellipse);
+			//printf("No. of Ellipse: %d\n", noEllipse[box]);
+			//printf("Detected %d lines\n", lines);
+		}
+
+    std::vector<Rect> validViola{};
+		std::vector<Point> violaCentres{};
+		std::vector<Point> circleCentres{};
+
+		// for (int box = 0; box < violaDetected.size(); box++){
+    //   // if(noEllipse[box] > 5 && noEllipse[box] < 10) {
+    //   //     rectangle(frame, Point(violaDetected[box].x, violaDetected[box].y), Point(violaDetected[box].x + violaDetected[box].width, violaDetected[box].y + violaDetected[box].height), Scalar( 255, 0, 0 ), 2);
+    //   // }
+		// 	if(noLines[box] > 2 && noLines[box] < 20) {
+    //     validViola.push_back(violaDetected[box]);
+    //     //Draw viola estimates
+		// 	}
+		//
+		// }
+
+		for (int box = 0; box < violaDetected.size(); box++) {
+			violaCentres.push_back({(violaDetected[box].x + (violaDetected[box].width / 2)), (violaDetected[box].y + (violaDetected[box].height / 2))});
+		}
+
+		for (int box = 0; box < contourBoxes.size(); box++) {
+			contourBoxCentres.push_back({(contourBoxes[box].x + (contourBoxes[box].width / 2)), (contourBoxes[box].y + (contourBoxes[box].height / 2))});
+		}
+
+		for (int cent = 0; cent < contourBoxCentres.size(); cent++) {
+			//printf("Contour Centre x: %d, y: %d\n", contourBoxCentres[cent].x, contourBoxCentres[cent].y);
+			int minDistance = -1;
+			int bestViola = -1;
+			for(int cent2 = 0; cent2 < violaDetected.size(); cent2++) {
+				int distance = (abs(contourBoxCentres[cent].x - violaCentres[cent2].x)) + abs((contourBoxCentres[cent].y - violaCentres[cent2].y));
+				//printf("distance: %d\n", distance);
+				if(distance < minDistance || minDistance == -1) {
+					minDistance = distance;
+					//printf("minD updated: %d\n", minDistance);
+					bestViola = cent2;
+					//printf("minD: %d\n", minDistance);
+				}
+
+			}
+			if(minDistance < 60 && bestViola != -1) {
+				//printf("Pushing back viola\n");
+				detected.push_back(contourBoxes[cent]);
+				//printf("ihih\n");
+			}
+		}
+
+
+		//detected = validViola;
+
+		for( int i = 0; i < detected.size(); i++ )
+		{
+			rectangle(frame, Point(detected[i].x, detected[i].y), Point(detected[i].x + detected[i].width, detected[i].y + detected[i].height), Scalar( 0, 255, 0 ), 2);
+		}
+
+		// for (int box = 0; box < circles.size(); box++) {
+		// 	circleCentres.push_back({(violaDetected[box].x + (violaDetected[box].width / 2)), (violaDetected[box].y + (violaDetected[box].height / 2))})
+		// }
+		//
+		// for(int box = 0; box < circles.size(); box++) {
+		//
+		// }
+
+
+
+
+		printf("contour\n");
+	}
+
 
 	displayTruths(frame, truthData);
 

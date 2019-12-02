@@ -5,4 +5,4 @@
 #include <opencv/cxcore.h>    //depending on your machine setup
 #include <math.h>
 
-int setupForContours(cv::Mat image);
+std::vector<cv::Rect> setupForContours(cv::Mat image);
