@@ -9,3 +9,5 @@
 std::vector<cv::Rect> circleHoughDetector(cv::Mat image);
 
 int lineHoughDetector(cv::Mat image);
+
+cv::Mat setup(cv::Mat image);
