@@ -41,7 +41,7 @@ Mat magnitudeImage;
 Mat magnitudeDirectionImage;
 Mat thresholdedImage;
 
-void setup(cv::Mat image)
+Mat setup(cv::Mat image)
 {
 
   int thresh = 150;
@@ -76,9 +76,11 @@ void setup(cv::Mat image)
  cv::normalize(magnitudeDirectionImage, magnitudeDirectionImageNorm, 0, 255, NORM_MINMAX, CV_8UC1);
  imwrite( "gen/magnitudeDirectionImage.jpg", magnitudeDirectionImageNorm );
 
- 
+
  cv::threshold(magnitudeImage, thresholdedImage, thresh, 255, THRESH_BINARY);
  imwrite( "gen/thresholdedImage.jpg", thresholdedImage );
+
+ return thresholdedImage;
 
 }
 
